@@ -13,25 +13,16 @@ import {
   Table,
   TableHead,
   TableBody,
+  TableFooter,
   TableRow,
   TableCell,
-  IconButton,
-  Tooltip,
-  Fade,
-  Modal,
-  Box,
-  Backdrop,
-  Button,
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { CircularProgress } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import {
   reset,
   addGameWord,
-  getGameWord,
 } from "../../../../features/gameWord/gameWordSlice";
 import { toast } from "react-toastify";
 
@@ -93,31 +84,6 @@ const styles = {
     height: "500px",
     mt: 3,
   },
-  tableCellStyle: {
-    color: "#fff",
-  },
-  deleteModalStyle: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 300,
-    background: "#fff",
-    borderRadius: "15px",
-    boxShadow: 20,
-    outline: "none",
-    p: 4,
-  },
-  btnStyle: {
-    background: "#1d2549",
-    width: "100px",
-    borderRadius: "8px",
-    margin: "0 5px",
-    ":hover": {
-      background: "#42C9A3",
-      color: "white",
-    },
-  },
 };
 const ManageGuessHandSign = () => {
   const dispatch = useDispatch();
@@ -132,13 +98,6 @@ const ManageGuessHandSign = () => {
 
   const toastID = useRef(null);
 
-  // modal state
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-  const handleDeleteModal = () => {
-    setDeleteModalOpen(!deleteModalOpen);
-  };
-
   const notify = () =>
     (toastID.current = toast.loading("Adding data...", {
       autoClose: 15000,
@@ -148,32 +107,19 @@ const ManageGuessHandSign = () => {
   const submitGameWord = (e) => {
     e.preventDefault();
 
-    if (!addFormData.word || addFormData.word === "") {
-      toast.warning("Please input a word");
-    } else {
-      const params = {
-        word: addFormData.word,
-        difficulty: addFormData.difficulty,
-        gameType: "fingerspell",
-        token: token,
-      };
+    const params = {
+      word: addFormData.word,
+      difficulty: addFormData.difficulty,
+      gameType: "fingerspell",
+      token: token,
+    };
 
-      notify();
-      dispatch(addGameWord(params));
-    }
+    notify();
+    dispatch(addGameWord(params));
   };
 
   useEffect(() => {
-    const params = {
-      token: token,
-    };
-    return () => dispatch(getGameWord(params));
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
     if (isSuccess) {
-      setAddFormData({ ...addFormData, word: "" });
       toast.update(toastID.current, {
         render: "Added Successfully",
         type: "success",
@@ -204,6 +150,7 @@ const ManageGuessHandSign = () => {
             <TextField
               label="Input a word"
               type="text"
+              name="word"
               fullWidth
               sx={styles.textfieldStyle}
               InputProps={{ sx: { height: 50, color: "#fff" } }}
@@ -236,7 +183,7 @@ const ManageGuessHandSign = () => {
           <Grid item={true} xs={3}>
             <LoadingButton
               onClick={submitGameWord}
-              loading={isLoading}
+              // loading={isLoading}
               loadingIndicator={
                 <CircularProgress size="2em" sx={{ color: "#182240" }} />
               }
@@ -250,130 +197,24 @@ const ManageGuessHandSign = () => {
         </Grid>
 
         <Paper fullwidth="true" sx={styles.paperStyle}>
-          <TableContainer
-            sx={{
-              maxHeight: "500px",
-            }}
-          >
-            <Table stickyHeader>
+          <TableContainer>
+            <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      backgroundColor: "var(--navyBlue)",
-                      color: "#fff",
-                    }}
-                  >
+                  <TableCell sx={{ color: "#fff", width: "40%" }}>
                     Words
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      backgroundColor: "var(--navyBlue)",
-                      color: "#fff",
-                    }}
-                  >
+                  <TableCell sx={{ color: "#fff", width: "40%" }}>
                     Difficulty
                   </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{
-                      backgroundColor: "var(--navyBlue)",
-                      color: "#fff",
-                    }}
-                  ></TableCell>
+                  <TableCell sx={{ color: "#fff" }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {data
-                  ? data.map((item) => {
-                      return (
-                        <TableRow key={item._id}>
-                          <TableCell sx={styles.tableCellStyle}>
-                            {item.word}
-                          </TableCell>
-                          <TableCell sx={styles.tableCellStyle}>
-                            {item.difficulty}
-                          </TableCell>
-                          <TableCell align="right" sx={styles.tableCellStyle}>
-                            <IconButton
-                              onClick={handleDeleteModal}
-                              aria-label="delete"
-                            >
-                              <Tooltip
-                                TransitionComponent={Fade}
-                                TransitionProps={{ timeout: 500 }}
-                                title="Delete"
-                                arrow
-                              >
-                                <DeleteIcon
-                                  TransitionComponent={Fade}
-                                  TransitionProps={{ timeout: 500 }}
-                                  color="error"
-                                />
-                              </Tooltip>
-                            </IconButton>
-
-                            <IconButton aria-label="update">
-                              <Tooltip title="Update" arrow>
-                                <EditIcon sx={{ color: "var(--aquaGreen)" }} />
-                              </Tooltip>
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  : ""}
-              </TableBody>
+              <TableBody></TableBody>
             </Table>
           </TableContainer>
         </Paper>
       </FormControl>
-
-      {/* Delete Modal */}
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={deleteModalOpen}
-        onClose={handleDeleteModal}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={deleteModalOpen}>
-          <Box sx={styles.deleteModalStyle}>
-            <div className="modal-container">
-              <h2>Are you sure you want to delete this data?</h2>
-
-              <div className="action-container">
-                <Button
-                  onClick={() => {
-                    handleDeleteModal();
-                  }}
-                  variant="contained"
-                  sx={styles.btnStyle}
-                >
-                  No
-                </Button>
-                <Button
-                  variant="contained"
-                  sx={{
-                    ...styles.btnStyle,
-                    ":hover": {
-                      background: "red",
-                      color: "white",
-                    },
-                  }}
-                >
-                  Yes
-                </Button>
-              </div>
-            </div>
-          </Box>
-        </Fade>
-      </Modal>
-      {/* End Delete Modal */}
 
       <RightNav
         header="MANAGE"
@@ -384,4 +225,4 @@ const ManageGuessHandSign = () => {
   );
 };
 
-export default ManageGuessHandSign;
+export default ManageSpellHandSign;
